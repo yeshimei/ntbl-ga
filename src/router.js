@@ -1,5 +1,8 @@
 const clear = require('clear')
 const term = new (require("tty-events"))
+const cliCursor = require('cli-cursor');
+ 
+
 
 function router (app) {
   
@@ -15,13 +18,15 @@ function router (app) {
   app.$terminal = {
     clear,
     pause,
-    resume
+    resume,
+    cursor: cliCursor
   }
 }
 
 async function mount () {
   await this.$router.push(this.$route.path)
-  if (process.stdin.isTTY) process.stdin.setRawMode(true)
+  this.$terminal.resume()
+  
   term.on('keypress', async (key = {}) => {
       const {name, ctrl} = key
 
@@ -86,13 +91,16 @@ async function push (url) {
 }
 
 function pause () {
+  cliCursor.show()  
   term.pause()
 }
 
 function resume () {
+  cliCursor.hide()
   term.resume()
   process.stdin.setRawMode(true)
 }
+
 
 function getChildren(routes, url) {
   return routes.filter(route => RegExp(`^\\${url}/[^/]*$`).test(route.path))

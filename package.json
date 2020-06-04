@@ -46,6 +46,7 @@
   },
   "dependencies": {
     "clear": "^0.1.0",
+    "cli-cursor": "^3.1.0",
     "tty-events": "^0.9.3"
   },
   "config": {
