@@ -1,0 +1,27 @@
+{
+  "tags": {
+    "allowUnknownTags": true,
+    "dictionaries": ["jsdoc","closure"]
+  },
+  "source": {
+    "include": ["./src"],
+    "exclude": [],
+    "includePattern": ".+\\.js(doc)?$",
+    "excludePattern": "(^|\\/|\\\\)_"
+  },
+  "plugins": [],
+  "templates": {
+    "cleverLinks"     : false,
+    "monospaceLinks"  : false,
+    "default"         : {
+      "outputSourceFiles" : true
+    },
+    "systemName"      : "DocStrap",
+    "footer"          : "",
+    "navType"         : "vertical",
+    "theme"           : "flatly",
+    "linenums"        : true,
+    "collapseSymbols" : false,
+    "inverseNav"      : true
+  }
+}
