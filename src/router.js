@@ -77,7 +77,7 @@ async function mount () {
 }
 
 async function render () {
-  const { routes, beforeEach, afterEach = noop } = this.$router
+  const { routes, beforeEach, afterEach = noop, render: handleRender} = this.$router
   const oldRoute = this.$route
   const path = this.$route.path
   let next = true
@@ -86,21 +86,17 @@ async function render () {
   let route = routes.find(route => route.rawPath.includes(path))
   if (!route) return
 
-  const component = route.component
-  template = typeof component === 'function' ? await component(this) : component
-  if (template == null) return
+   // 设置当前路由
+   this.$route.route = route
+   // 设置所有子路由
+   this.$route.children = getChildren(cloneDeep(routes), path)
+   // 设置路由链
+   this.$route.chain = getChain(cloneDeep(routes), path)
+   // 设置当前模板
+   this.$route.template = template
 
-  // 设置当前路由
-  this.$route.route = route
-  // 设置所有子路由
-  this.$route.children = getChildren(cloneDeep(routes), path)
-  // 设置路由链
-  this.$route.chain = getChain(cloneDeep(routes), path)
-  // 设置当前模板
-  this.$route.template = template
-
-  // 前置钩子
-  if (typeof beforeEach === 'function') {
+   // 前置钩子
+   if (typeof beforeEach === 'function') {
     next = false
     await beforeEach(this.$route, oldRoute, path => {
       if (path) return this.$router.push(path)
@@ -109,10 +105,19 @@ async function render () {
   }
   if (!next) return
 
-  // 清理屏幕
-  if(this.$config.autoClear) this.$terminal.clear()
-  // 打印
-  console.log(this.$route.template)
+  const component = route.component
+  template = typeof component === 'function' ? await component(this) : component
+
+
+  // 当组件为返回模板时，将由控制器交给用户
+  if (template) {
+    // 清理屏幕
+    if(this.$config.autoClear) this.$terminal.clear()
+    // 打印
+    if (typeof handleRender === 'function') handleRender(template)
+    else console.log(this.$route.template)
+  }
+  
  
   // 后置钩子
   await afterEach(this.$route, oldRoute)

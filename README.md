@@ -8,4 +8,9 @@
 ![](https://yeshimei.oss-cn-beijing.aliyuncs.com/20200604183924.gif)
 
 
+现在，可以在界面中增加动画了。
+
+![](https://yeshimei.oss-cn-beijing.aliyuncs.com/20200606003452.gif)
+
+
 (目前，还在开发中...)
