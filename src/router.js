@@ -1,4 +1,4 @@
-const clear = require('clear')
+const cl = require('clear')
 const cliCursor = require('cli-cursor');
 const term = new (require("tty-events"))
 const { noop } = require('./utils')
@@ -30,7 +30,7 @@ function router (app) {
   app.$router.go = go.bind(app)
   
   app.$terminal = {
-    clear,
+    clear: clear(app.$config.clear),
     pause,
     resume,
     cursor: cliCursor
@@ -112,7 +112,7 @@ async function render () {
   // 当组件为返回模板时，将由控制器交给用户
   if (template) {
     // 清理屏幕
-    if(this.$config.autoClear) this.$terminal.clear()
+    this.$terminal.clear()
     // 打印
     if (typeof handleRender === 'function') handleRender(template)
     else console.log(this.$route.template)
@@ -123,16 +123,24 @@ async function render () {
   await afterEach(this.$route, oldRoute)
 }
 
+function clear (clear) {
+   return function () {
+    if(clear) cl()
+    return this
+   }
+}
 
 function pause () {
   cliCursor.show()  
   term.pause()
+  return this
 }
 
 function resume () {
   cliCursor.hide()
   term.resume()
   process.stdin.setRawMode(true)
+  return this
 }
 
 
@@ -156,7 +164,7 @@ function getChain(routes, path) {
     if (route) chain.push(route)
   })
 
-  return chain.reverse()
+  return chain
 }
 
 function resetPath (path) {

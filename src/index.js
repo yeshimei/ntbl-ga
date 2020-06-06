@@ -6,7 +6,7 @@ function Ga(options) {
 
   this.$config = {
     // 自动清除屏幕
-    autoClear: true
+    clear: true
   }
   
 
