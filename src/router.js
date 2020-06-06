@@ -1,48 +1,47 @@
 const cl = require('clear')
 const cliCursor = require('cli-cursor');
 const term = new (require("tty-events"))
+const _ = require('lodash')
 const { noop } = require('./utils')
-const pullAt = require('lodash/pullAt')
-const last = require('lodash/last')
-const tail = require('lodash/tail')
-const take = require('lodash/take')
-const isObject = require('lodash/isObject')
-const cloneDeep = require('lodash/cloneDeep')
 
-function router (app) {
-  
+async function router (app) {
   app.$route = {
     route: {},
     children: [],
     path: '/',
   }
-
   app.$router.history = []
   app.$router.historyIndex = 0
-
-  app.$router.routes = formatRoutes(app.$router.routes)
-  
   app.$mount = mount
   app.$render = render
   app.$router.push = push.bind(app)
   app.$router.back = back.bind(app)
   app.$router.forward = forward.bind(app)
   app.$router.go = go.bind(app)
-  
   app.$terminal = {
-    clear: clear(app.$config.clear),
+    clear: clear(app.constructor.config.clear),
     pause,
     resume,
     cursor: cliCursor
   }
+
+  formatRoutes(app.$router.routes)
+
+   // mount 钩子
+   await app._executeHook('mount')
+   // 挂载路由
+   await app.$mount()
+   // mounted 钩子
+   await app._executeHook('mounted')
 }
 
 async function mount () {
-  await this.$router.push(this.$route.path)
+  await this.$router.push('/')
   this.$terminal.resume()
-  
+
   term.on('keypress', async (key = {}) => {
-      const {name, ctrl, alt, shift} = key
+      let { name, ctrl } = key
+      const { $router, $route } = this
 
       // 强制退出
       if (ctrl && name === 'c') {
@@ -51,81 +50,67 @@ async function mount () {
 
       // ESC 返回
       if (name === 'escape') {
-        return await this.$router.back()
+        return await $router.back()
       }
-      
 
-      // 组合键
-      let newPath = resetPath(name 
-        + (ctrl ? '+ctrl' : '') 
-        + (alt ? '+alt' : '') 
-        + (shift ? '+shift' : ''))
+      // path 转跳
+      key = combineComboKeys(key)
+      const path = `${$route.path}/${key}`.replace('//', '/')
+      if ($router.routes.some(route => route.path.some(p => p.path === path))) {
+        return $router.push(path)
+      }
+
+      // jump 转跳
+      const route = $router.routes.find(route => route.jump.find(p => p.path === key))
       
-      // 默认以线性切换界面
-      // 当 jump = true 时，则可以在任意界面切换到其他界面  
-      const jump = this.$router.routes.some(route => {
-        const path = route.path.find(path => path.rawKey === newPath)
-        return path && path.jump
-      })
-     
-      if (jump) {
-        this.$router.push('/' + newPath)
-      } else {
-        this.$router.push(`${this.$route.path}/${newPath}`.replace('//', '/'))
+      if (route) {
+        return $router.push(route.path[0].path)
       }
     })
 }
 
 async function render () {
-  const { routes, beforeEach, afterEach = noop, render: handleRender} = this.$router
-  const oldRoute = this.$route
-  const path = this.$route.path
+  const { oldRoute, route } = this.$route
+  const hooks = this.hooks
   let next = true
-  let template
-
-  let route = routes.find(route => route.rawPath.includes(path))
-  if (!route) return
-
-   // 设置当前路由
-   this.$route.route = route
-   // 设置所有子路由
-   this.$route.children = getChildren(cloneDeep(routes), path)
-   // 设置路由链
-   this.$route.chain = getChain(cloneDeep(routes), path)
-   // 设置当前模板
-   this.$route.template = template
 
    // 前置钩子
-   if (typeof beforeEach === 'function') {
-    next = false
-    await beforeEach(this.$route, oldRoute, path => {
-      if (path) return this.$router.push(path)
-      else next = true
-    })
+  if (hooks.beforeEach.length) {
+    await Promise.all(hooks.beforeEach.map(fn => {
+      next = false
+
+      return fn(this.$route, oldRoute, path => {
+        if (path) return this.$router.push(path)
+        else next = true
+      })
+    }))
   }
+  
   if (!next) return
 
   const component = route.component
-  template = typeof component === 'function' ? await component(this) : component
-
-
-  // 当组件为返回模板时，将由控制器交给用户
-  if (template) {
+  let = template = typeof component === 'function' ? await component(this) : component
+  
+  // 设置当前模板
+  this.$route.template = template
+  
+  // 当组件未返回模板时，将由控制器交给用户
+  if (this.$route.template) {
     // 清理屏幕
     this.$terminal.clear()
     // 打印
-    if (typeof handleRender === 'function') handleRender(template)
-    else console.log(this.$route.template)
+    await this._executeHook('render', this.$route)
+    console.log(this.$route.template)
   }
   
  
   // 后置钩子
-  await afterEach(this.$route, oldRoute)
+  await this._executeHook('afterEach', this.$route, oldRoute)
 }
 
 function clear (clear) {
    return function () {
-    if(clear) cl()
+    if (clear) cl()
     return this
    }
 }
@@ -145,12 +130,13 @@ function resume () {
 
 
 function getChildren(routes, path) {
+
   const children = routes.filter(route => {
     route.path = route.path.filter(p => RegExp(`^\\${path}\\/?[^\\/]*$`).test(p.path))
     return route.path.length
   })
   
-  return tail(children)
+  return _.tail(children)
 }
 
 function getChain(routes, path) {
@@ -159,11 +145,10 @@ function getChain(routes, path) {
   const keys = path === '/' ? ['/'] : path.split('/')
 
   keys.forEach((key, index) => {
-    const othPath = take(keys, index + 1).join('/') || '/'
-    const route = routes.find(route => route.rawPath.includes(othPath))
+    const othPath = _.take(keys, index + 1).join('/') || '/'
+    const route = routes.find(route => route.path.find(p => p.path === othPath))
     if (route) chain.push(route)
   })
-
   return chain
 }
 
@@ -178,23 +163,29 @@ function resetPath (path) {
 }
 
 
-async function push (path) {
-  const { history, historyIndex, routes} = this.$router
-
+async function push (path, n = 0) {
+  const { $route, $router } = this
+  const { history, historyIndex, routes} = $router
   // 支持 name
   if (path[0] !== '/') {
-    const route = routes.filter(route => route.name === path)
-    path = route && route.rawPath[0]
+    const route = routes.find(route => route.name === path)
+    path = route && route.path[n]
   }
   if (!path) return
+  let route = routes.find(route => route.path.some(p => p.path === path))
+  if (!route) return
   
-  this.$route.path = path
-  await this.$render()
-
+  $route._oldRoute = $route
+  $route.path = path
+  $route.route = route
+  $route.children = getChildren(_.cloneDeep(routes), path)
+  $route.chain = getChain(_.cloneDeep(routes), path)
+  await this.$render(path)
+  // history 
   if (path !== history[historyIndex]) {
-    this.$router.history = take(history,  historyIndex + 1)
-    this.$router.history.push(path)
-    this.$router.historyIndex = this.$router.history.length - 1
+    $router.history = _.take(history,  historyIndex + 1)
+    $router.history.push(path)
+    $router.historyIndex = $router.history.length - 1
   }
 }
 
@@ -219,54 +210,62 @@ async function go (n) {
 
 
 function getRwaKey(path) {
-  return last(path.split('/'))
+  return _.last(path.split('/'))
 }
 
-function getKeys (rawKey) {
-  const ks = rawKey.split('+').map(k => k.toLocaleLowerCase())
+function getKeys (path) {
+  const ks = getRwaKey(path).split('+').map(k => k.toLocaleLowerCase())
   return {
-    name: last(ks),
+    name: _.last(ks),
     ctrl: ks.includes('ctrl'),        
     alt: ks.includes('alt'),
     shift: ks.includes('shift')
   }
 }
 
-function isIncludeCombinationKey (path) {
-  return path.substring(1).split('+').some(key => ['ctrl', 'shift', 'alt'].includes(key))
+function isCombinationKey (path) {
+  return path.split('+').some(key => ['ctrl', 'shift', 'alt'].includes(key))
+}
+
+function combineComboKeys (key) {
+  const {name, ctrl, alt, shift} = key
+  return resetPath(name 
+    + (ctrl ? '+ctrl' : '') 
+    + (alt ? '+alt' : '') 
+    + (shift ? '+shift' : ''))
 }
 
 function formatRoutes (routes) {
   return routes.map(route => {
-    // 支持字符串和对象语法
-    if (!Array.isArray(route.path)) route.path = [route.path]
-    // 数组语法
-    route.path = route.path
-    .map(path => {
-      if (typeof path === 'string') {
-        return {
-          path,
-          jump: false
-        }
-      } 
-      
-      if (isObject(path)) {
-        // 仅支持单个组合键进行转跳
-        path.jump = path.jump && isIncludeCombinationKey(path.path)
-        return path
-      }
-    })
-    // 调整组合键的顺序
-    .map(path => {
-      path.path = resetPath(path.path)
-      // 按键
-      path.rawKey = getRwaKey(path.path)
-      // 按键对象
-      path.keys = getKeys(path.rawKey)
-      return path
-    })
+    const {path, jump} = route
 
-    route.rawPath = route.path.map(path => path.path)
+    if (path) {
+      if (typeof path === 'string') route.path = [path]
+
+      route.path = route.path.map(p => ({
+        path: resetPath(p),
+        rawKey: getRwaKey(p),
+        keys: getKeys(p) 
+      }))
+    } else {
+      throw new TypeError(`Specify at least one legal path for the ${route.name} route`)
+    }
+
+    
+
+    if (jump) {
+      if (typeof jump === 'string') route.jump = [jump]
+
+      if (!route.jump.every(p => isCombinationKey(p))) {
+        throw new TypeError(`The jump option of the ${route.name} route must be a key combination (ctrl/alt/shift)`)
+      }
+
+      route.jump = route.jump.map(p => ({
+        path: resetPath(p),
+        keys: getKeys(p)
+      }))
+    }
+
     return route
   })
 }
