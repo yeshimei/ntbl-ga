@@ -1,0 +1,34 @@
+{
+  "name": "@ntbl/github-star",
+  "version": "1.0.0",
+  "description": "为您的 github star 分类",
+  "main": "index.js",
+  "bin": {
+    "poems": "bin/index.js"
+  },
+  "keywords": [
+    "scripts"
+  ],
+  "scripts": {},
+  "author": "yeshimei",
+  "bugs": {
+    "url": "https://github.com/yeshimei/ntbl-scripts/issues"
+  },
+  "repository": "https://github.com/yeshimei/ntbl-scripts/tree/master/scripts/github-star",
+  "license": "MIT",
+  "dependencies": {
+    "@ntbl/log": "^1.3.0",
+    "boxen": "^4.2.0",
+    "chalk": "^4.0.0",
+    "conf": "^6.2.4",
+    "fuzzy": "^0.1.3",
+    "github-api": "^3.3.0",
+    "hyperlinker": "^1.0.0",
+    "inquirer": "^7.1.0",
+    "inquirer-autocomplete-prompt": "^1.0.2",
+    "inquirer-search-checkbox": "^1.0.0",
+    "lodash": "^4.17.15",
+    "mockjs": "^1.1.0",
+    "supports-hyperlinks": "^2.1.0"
+  }
+}
