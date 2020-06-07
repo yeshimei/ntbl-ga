@@ -34,7 +34,7 @@ const banner = '// * Released under the MIT License.\n'
 // rollup 配置
 const builds = {
   'cjs': {
-    entry: 'src/index.js',
+    entry: 'src/core/index.js',
     // 当文件名包含 .min 时将会自动启用 terser 进行压缩
     dest: `dist/${moduleName}.cjs.js`,
     /* rollup 支持 5 种打包类型
@@ -53,7 +53,7 @@ const builds = {
     external: ['assign-deep', 'escape-string-regexp', 'glob', 'path', 'chalk', 'mockjs', 'sequelize'],
   },
   'es': {
-    entry: 'src/index.js',
+    entry: 'src/core/index.js',
     // 当文件名包含 .min 时将会自动启用 terser 进行压缩
     dest: `dist/${moduleName}.es.js`,
     /* rollup 支持 5 种打包类型
