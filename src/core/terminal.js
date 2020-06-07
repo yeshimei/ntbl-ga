@@ -3,6 +3,7 @@ const cliCursor = require('cli-cursor');
 const term = new (require("tty-events"))
 
 function terminalMixin (Ga) {
+  term.timeout.timeout = Ga.config.timeout
   Ga.prototype.$terminal = {
     _term: term,
     clear: clear(Ga.config.clear),
