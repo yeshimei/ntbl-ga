@@ -61,7 +61,7 @@ async function mount () {
       }
 
       // jump 转跳
-      const route = $router.routes.find(route => route.jump.find(p => p.path === key))
+      const route = $router.routes.find(route => route.jump && route.jump.find(p => p.path === key))
       
       if (route) {
         return $router.push(route.path[0].path)
