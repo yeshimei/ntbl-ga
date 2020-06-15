@@ -1,9 +1,15 @@
 
-module.exports = {
-  // app.$terminal.clear() 方法的开启与关闭
-  // 测试时，推荐关闭此方法
-  clear: true,
-  // 默认，关闭转义序列，ESC 键无等待响应耗时
+/**
+ * 全局配置对象
+ * @name config
+ * @memberof Ga
+ * @static
+ * @type {object}
+ * @property {Number} [timeout=0] - 等待转义序列的响应时间
+ * @property {Boolean} [test=false] - 测试模式
+ */
+export default {
+  test: false,
   // https://github.com/dd-pardal/tty-events#escape-key
   timeout: 0
 }

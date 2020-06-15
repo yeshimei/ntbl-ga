@@ -1,11 +1,11 @@
-const _ = require('lodash')
+import _ from 'lodash'
 
-function handleError (err) {
+export function handleError (err) {
   console.log(err);
   process.exit(1)
 }
 
-function getChildren(routes, path) {
+export function getChildren(routes, path) {
   const children = routes.filter(route => {
     route.path = route.path.filter(p => RegExp(`^\\${path}\\/?[^\\/]*$`).test(p.path))
     return route.path.length
@@ -14,7 +14,7 @@ function getChildren(routes, path) {
   return _.tail(children)
 }
 
-function getChain(routes, path) {
+export function getChain(routes, path) {
   const chain = []
   // 根路径的特殊处理
   const keys = path === '/' ? ['/'] : path.split('/')
@@ -27,7 +27,7 @@ function getChain(routes, path) {
   return chain
 }
 
-function resetPath (path) {
+export function resetPath (path) {
   return path
   .split('/')
   .map(key => key
@@ -37,11 +37,11 @@ function resetPath (path) {
   .join('/')
 }
 
-function getRwaKey(path) {
+export function getRwaKey(path) {
   return _.last(path.split('/'))
 }
 
-function getKeys (path) {
+export function getKeys (path) {
   const ks = getRwaKey(path).split('+').map(k => k.toLocaleLowerCase())
   return {
     name: _.last(ks),
@@ -51,11 +51,11 @@ function getKeys (path) {
   }
 }
 
-function isCombinationKey (path) {
+export function isCombinationKey (path) {
   return path.split('+').some(key => ['ctrl', 'shift', 'alt'].includes(key))
 }
 
-function combineComboKeys (key) {
+export function combineComboKeys (key) {
   const {name, ctrl, alt, shift} = key
   return resetPath(name 
     + (ctrl ? '+ctrl' : '') 
@@ -63,7 +63,7 @@ function combineComboKeys (key) {
     + (shift ? '+shift' : ''))
 }
 
-function formatRoutes (routes) {
+export function formatRoutes (routes) {
   return routes.map(route => {
     const {path, jump} = route
 
@@ -72,14 +72,12 @@ function formatRoutes (routes) {
 
       route.path = route.path.map(p => ({
         path: resetPath(p),
-        rawKey: getRwaKey(p),
-        keys: getKeys(p) 
+        key: getRwaKey(p),
+        keys: getKeys(p)
       }))
     } else {
       throw new TypeError(`Specify at least one legal path for the ${route.name} route`)
     }
-
-    
 
     if (jump) {
       if (typeof jump === 'string') route.jump = [jump]
@@ -96,12 +94,4 @@ function formatRoutes (routes) {
 
     return route
   })
-}
-
-module.exports = {
-  handleError,
-  getChildren,
-  getChain,
-  combineComboKeys,
-  formatRoutes
 }

@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width">
+	<title>DocStrap Index</title>
+
+	<!--[if lt IE 9]>
+	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link type="text/css" rel="stylesheet" href="styles/sunlight.default.css">
+
+	<link type="text/css" rel="stylesheet" href="styles/site.flatly.css">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-default navbar-fixed-top navbar-inverse">
+<div class="container">
+	<div class="navbar-header">
+		<a class="navbar-brand" href="index.html">DocStrap</a>
+		<button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#topNavigation">
+			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>
+        </button>
+	</div>
+	<div class="navbar-collapse collapse" id="topNavigation">
+		<ul class="nav navbar-nav">
+			
+			<li class="dropdown">
+				<a href="classes.list.html" class="dropdown-toggle" data-toggle="dropdown">Classes<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="Event.html">Event</a></li><li><a href="Ga.html">Ga</a></li><li><a href="Router.html">Router</a></li><li><a href="Terminal.html">Terminal</a></li>
+				</ul>
+			</li>
+			
+		</ul>
+        
+            <div class="col-sm-3 col-md-3">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search" name="q" id="search-input">
+                        <div class="input-group-btn">
+                            <button class="btn btn-default" id="search-submit"><i class="glyphicon glyphicon-search"></i></button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        
+	</div>
+
+</div>
+</div>
+
+
+<div class="container" id="toc-content">
+<div class="row">
+
+	
+	<div class="col-md-8">
+	
+		<div id="main">
+			
+
+	
+	
+
+
+
+
+
+
+
+
+
+
+
+	
+	
+
+
+
+
+
+    <section class="readme-section">
+        <article><h1>Ga</h1>
+<p><a href="https://github.com/yeshimei/ntbl-ga.git"><img src="https://img.shields.io/badge/GitHub-yeshimei-green.svg" alt="GitHub"></a> <a href="https://www.npmjs.com/package/@ntbl/ga"><img src="https://img.shields.io/npm/v/@ntbl/ga.svg" alt="npm"></a> <a href="https://github.com/yeshimei/ntbl-ga.git"><img src="https://img.shields.io/npm/l/express.svg" alt="MIT"></a></p>
+<p>Ga，一个构建交互式命令行界面的库。</p>
+<p><a href="https://yeshimei.github.io/ntbl-ga/"><strong>API Documentation</strong></a></p>
+<ul>
+<li><a href="#Installation">Installation</a></li>
+<li><a href="#Usage">Usage</a></li>
+<li><a href="#Router">Router</a></li>
+<li><a href="#Component">Component</a></li>
+<li><a href="#Terminal">Terminal</a></li>
+<li><a href="#Event">Event</a></li>
+</ul>
+<p>Ga 的核心是一个基于按键（组合键）的路由器，当运行命令行脚本时，Ga 将监听键盘事件（keypress），用户通过单击不同按键切换到对应的命令行界面。</p>
+<p>它很小，却能轻松配合各种命令行相关库和脑子里奇妙创意，构建出漂亮且强大的交互式命令行应用。</p>
+<p><img src="https://yeshimei.oss-cn-beijing.aliyuncs.com/20200613181348.gif" alt=""><br>
+<a href="https://github.com/yeshimei/ntbl-ga/tree/dev/exmaples/dome"> ☞ exmaples/dome</a></p>
+<p>目前，Ga 能做到的事情：</p>
+<ul>
+<li>异步（async/await）</li>
+<li>动画（<a href="https://github.com/yeshimei/ntbl-log">ntbl-log</a> ...）</li>
+<li>交互式（<a href="https://github.com/SBoudrias/Inquirer.js">inquirer</a>，<a href="https://github.com/enquirer/enquirer">enquirer</a> ...）</li>
+<li>插件扩展</li>
+</ul>
+<h1>Installation</h1>
+<pre class="prettyprint source lang-bash"><code>npm i @ntbl/ga --save
+</code></pre>
+<h1>Usage</h1>
+<ol>
+<li>引入</li>
+</ol>
+<pre class="prettyprint source lang-js"><code>// index.js
+
+const Ga = require('../../src/core')
+
+// or
+
+import Ga from '@ntbl/ga'
+</code></pre>
+<ol start="2">
+<li>实例化并手动挂载路由</li>
+</ol>
+<pre class="prettyprint source lang-js"><code>// 引入路由
+const router = require('./router')
+
+// 实例化
+const app = new Ga({
+  router
+})
+
+// 手动挂载
+app.$mount()
+</code></pre>
+<ol start="3">
+<li>声明路由</li>
+</ol>
+<pre class="prettyprint source lang-js"><code>// router.js
+
+const home = require('./views/home')
+const summary = require('./views/summary')
+
+module.exports = app => {
+  return {
+    routes: [
+      { 
+        name: 'home',
+        // 挂载路由时，默认路径
+        path: '/',
+        component: home,
+      },
+      { 
+        name: 'summary',
+        // 挂载路由时，默认路径
+        path: '/s',
+        component: summary,
+      },
+    ]
+  }
+}
+</code></pre>
+<ol start="4">
+<li>编写组件</li>
+</ol>
+<pre class="prettyprint source lang-js"><code>// views/home.js
+
+module.exports = app => {
+  return '\n\n欢迎来到 Ga，这是一个简单的用例'
+  + '\n\n请单击按键 s，查看概要'
+}
+</code></pre>
+<pre class="prettyprint source lang-js"><code>// views/summary.js
+
+module.exports = app => {
+  return '\n\nGa，一个构建交互式命令行界面的库。'
+  + '\n\n单击按键 ESC 返回'
+}
+</code></pre>
+<ol start="5">
+<li>运行脚本</li>
+</ol>
+<pre class="prettyprint source lang-bash"><code>ndoe index.js
+</code></pre>
+<p><img src="https://yeshimei.oss-cn-beijing.aliyuncs.com/20200613194558.gif" alt=""><br>
+<a href="https://github.com/yeshimei/ntbl-ga/tree/dev/exmaples/usage"> ☞ exmaples/usage</a></p>
+<h1>Router</h1>
+<p>Ga 路由（router）与 SPA 单页 web 应用（single page web application）或 web 框架的路由存在以下差异：</p>
+<ul>
+<li>Ga 路由的路径（path）是一条由按键名（key）组成的链（线性）</li>
+</ul>
+<pre class="prettyprint source lang-js"><code>/           // 挂载时，默认路径
+/s          // 第一步，用户单击按键 s
+/s/t        // 第二步，用户再次单击按键 t
+/s/t/alt+d  // 第三步，用户最后单击组合键 alt+d
+</code></pre>
+<ul>
+<li>Ga 路由通过组合键实现页面之间的转跳（非线性）</li>
+</ul>
+<pre class="prettyprint source lang-js"><code>// 无论在任何页面单击组合键 alt+x
+// 直接转跳到 home 页面
+{
+  name: 'home'
+  path: '/',
+  jump: 'alt+x',
+  component: home
+}
+</code></pre>
+<ul>
+<li>Ga 路由的 <code>path</code> 与 <code>jump</code> 支持同时指定多个值。</li>
+</ul>
+<pre class="prettyprint source lang-js"><code>{
+  name: 'star'
+  path: ['/s', '/c/s'],
+  jump: ['alt+s', 'shift+alt+s'],
+  component: star
+}
+</code></pre>
+<p>在组件内部，使用 <a href="">app.$router</a> 上的一些路由方法精确控制页面转跳。</p>
+<pre class="prettyprint source lang-js"><code>// views/summary.js
+
+module.exports = app => {
+  const { $router } = app
+
+  // 两秒后，自动返回到首页
+  setTimeout(function () {
+    $router.push('/')
+    // 或者通过 name
+    // $router.push('home')
+  }, 2000)
+
+  return '\n\nGa，一个构建交互式命令行界面的库。'
+  + '\n\n两秒后，自动返回到首页'
+}
+</code></pre>
+<p><img src="https://yeshimei.oss-cn-beijing.aliyuncs.com/20200613194702.gif" alt=""><br>
+<a href="https://github.com/yeshimei/ntbl-ga/tree/dev/exmaples/router/auto_return"> ☞ exmaples/router/auto_return</a></p>
+<p>每当页面渲染之前，<a href="">app.$route</a> 都会更新当前页面的路由信息。这样，我们在页面底部中加入菜单导航。</p>
+<pre class="prettyprint source lang-js"><code>// views/home.js
+
+module.exports = app => {
+  const { $route } = app
+
+  const bottomMenu = $route.children.map(route => `${route.alias}[${route.path[0].key}]`)
+
+  return '\n\n欢迎来到 Ga，这是一个简单的用例'
+  + '\n\n' + bottomMenu.join(' | ')
+}
+</code></pre>
+<p><img src="https://yeshimei.oss-cn-beijing.aliyuncs.com/20200613200451.png" alt=""><br>
+<a href="https://github.com/yeshimei/ntbl-ga/tree/dev/exmaples/router/bottom_menu"> ☞ exmaples/router/bottom_menu</a></p>
+<h1>Component</h1>
+<p>组件（component）包含用户编写的业务逻辑与界面视图逻辑。</p>
+<p>在一个组件中，一个业务可能有多个分支逻辑并多次更新当前界面的视图。为了让用户极大地保持代码的完整和可控性，视图完全交由用户处理。</p>
+<p>比如，我们轻松地配合 <a href="https://github.com/SBoudrias/Inquirer.js">inquirer</a> 实现一个账号登陆的组件。</p>
+<pre class="prettyprint source lang-js"><code>const inquirer = require('inquirer')
+const log = require('@ntbl/log')()
+
+module.exports = async app => {
+  const { $terminal } = app
+
+  // 暂停按键事件监听器
+  // 防止在输入内容时与路由转跳发生冲突
+  $terminal.pause()
+
+  console.log('登陆账号：');
+
+  const answer = await inquirer.prompt([
+    {
+      type: 'input',
+      message: 'username:',
+      name: 'user'
+    },
+    {
+      type: 'password',
+      message: 'password:',
+      name: 'pass'
+    }
+  ])
+
+  // 恢复按键事件监听器
+  $terminal.resume()
+
+  // 清空命令行界面
+  $terminal.clear()
+
+  // loading 
+  log.start(data => `${data.frame} 正在登陆，请稍等！`)
+
+  // 登陆验证
+  try {
+    await login(answer.user, answer.pass)
+    log.stop()
+    return '登陆成功，欢迎您'
+  } catch (err) {
+    log.stop()
+    return '登陆失败'
+  }
+}
+</code></pre>
+<p><img src="https://yeshimei.oss-cn-beijing.aliyuncs.com/20200613210049.gif" alt=""><br>
+<a href="https://github.com/yeshimei/ntbl-ga/tree/dev/exmaples/component/login"> ☞ exmaples/component/login</a></p>
+<h1>Terminal</h1>
+<p><a href="">app.$terminal</a> 上有一组处理命令行的方法。</p>
+<ul>
+<li>clear() - 清空命令行</li>
+<li>pause() - 暂停按键事件监听。</li>
+</ul>
+<p>在使用第三方交互式库时，必须调用此方法，避免输入内容时与路由转跳之间发生冲突。</p>
+<ul>
+<li>resume() - 恢复按键事件监听。</li>
+</ul>
+<pre class="prettyprint source"><code>app.$terminal.pause()
+
+// 第三方交互库
+
+app.$terminal.resume()
+</code></pre>
+<h1>Event</h1>
+<p>在 Ga 实例生命周期里，在不同时期分别会触发以下事件：</p>
+<ul>
+<li>mount(app) - 在挂载之前触发，仅触发一次。</li>
+<li>mounted(app) - 在挂载之后触发，此时，页面已渲染。仅触发一次。</li>
+<li>beforeEach(to, from, next) - 在组件每次调用之前触发。</li>
+<li>render(route) - 在页面渲染之前触发（注意，当组件未返回任何内容时，此事件不会触发）。</li>
+<li>afterEach(to, from) - 在页面渲染之后触发</li>
+</ul>
+<p>利用事件，我们为每个页面添加底部导航。</p>
+<pre class="prettyprint source"><code>// router.js
+
+module.exports = app => {
+  const { $event } = app
+  $event.on('beforeEach', (to, from, next) => {
+    const { $route, store } = app
+
+    const bottomMenu = $route.children.map(route => `${route.alias}[${route.path[0].key}]`)
+
+    // store 是一个全局共享数据的存储对象
+    store.bottomMenu = bottomMenu
+
+    // beforeEach 事件默认会拦截路由
+    // next 方法，允许通过
+    next()
+  })
+
+  $event.on('render', route => {
+    route.template += ('\n\n' + app.store.bottomMenu.join(' | '))
+  })
+  
+  /* 路由声明 */
+}
+</code></pre>
+<p><img src="https://yeshimei.oss-cn-beijing.aliyuncs.com/20200613214219.gif" alt=""><br>
+<a href="https://github.com/yeshimei/ntbl-ga/tree/dev/exmaples/event"> ☞ exmaples/event</a></p>
+<h1>Documentation</h1>
+<p>一份由 jsdoc 生成的 <a href="https://yeshimei.github.io/ntbl-ga/"><strong>API Documentation</strong></a></p>
+<h1>Issues</h1>
+<p>遇到任何问题，欢迎提交 <a href="https://github.com/yeshimei/ntbl-ga/issues">Issues</a></p>
+<h1>License</h1>
+<p>The MIT License (MIT)</p>
+<p>Copyright (c) 2014-2015 James Shore</p>
+<p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &quot;Software&quot;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p>
+<p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p>
+<p>THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p></article>
+    </section>
+
+
+
+
+
+
+
+		</div>
+	</div>
+
+	<div class="clearfix"></div>
+
+	
+		<div class="col-md-3">
+			<div id="toc" class="col-md-3 hidden-xs hidden-sm hidden-md"></div>
+		</div>
+	
+
+</div>
+</div>
+
+
+    <div class="modal fade" id="searchResults">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">Search results</h4>
+          </div>
+          <div class="modal-body"></div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div>
+
+
+<footer>
+
+
+<span class="jsdoc-message">
+	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.4</a>
+	
+		on 2020-06-14T00:42:38+08:00
+	
+	using the <a href="https://github.com/docstrap/docstrap">DocStrap template</a>.
+</span>
+</footer>
+
+<script src="scripts/docstrap.lib.js"></script>
+<script src="scripts/toc.js"></script>
+
+    <script type="text/javascript" src="scripts/fulltext-search-ui.js"></script>
+
+
+<script>
+$( function () {
+	$( "[id*='$']" ).each( function () {
+		var $this = $( this );
+
+		$this.attr( "id", $this.attr( "id" ).replace( "$", "__" ) );
+	} );
+
+	$( ".tutorial-section pre, .readme-section pre, pre.prettyprint.source" ).each( function () {
+		var $this = $( this );
+
+		var example = $this.find( "code" );
+		exampleText = example.html();
+		var lang = /{@lang (.*?)}/.exec( exampleText );
+		if ( lang && lang[1] ) {
+			exampleText = exampleText.replace( lang[0], "" );
+			example.html( exampleText );
+			lang = lang[1];
+		} else {
+			var langClassMatch = example.parent()[0].className.match(/lang\-(\S+)/);
+			lang = langClassMatch ? langClassMatch[1] : "javascript";
+		}
+
+		if ( lang ) {
+
+			$this
+			.addClass( "sunlight-highlight-" + lang )
+			.addClass( "linenums" )
+			.html( example.html() );
+
+		}
+	} );
+
+	Sunlight.highlightAll( {
+		lineNumbers : true,
+		showMenu : true,
+		enableDoclinks : true
+	} );
+
+	$.catchAnchorLinks( {
+        navbarOffset: 10
+	} );
+	$( "#toc" ).toc( {
+		anchorName  : function ( i, heading, prefix ) {
+			return $( heading ).attr( "id" ) || ( prefix + i );
+		},
+		selectors   : "#toc-content h1,#toc-content h2,#toc-content h3,#toc-content h4",
+		showAndHide : false,
+		smoothScrolling: true
+	} );
+
+	$( "#main span[id^='toc']" ).addClass( "toc-shim" );
+	$( '.dropdown-toggle' ).dropdown();
+
+    $( "table" ).each( function () {
+      var $this = $( this );
+      $this.addClass('table');
+    } );
+
+} );
+</script>
+
+
+
+<!--Navigation and Symbol Display-->
+
+
+<!--Google Analytics-->
+
+
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            SearcherDisplay.init();
+        });
+    </script>
+
+
+</body>
+</html>
