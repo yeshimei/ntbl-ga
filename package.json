@@ -1,15 +1,18 @@
 {
   "name": "@ntbl/ga",
   "version": "1.0.0",
-  "description": "一个通过按键导航的交互式命令行路由",
+  "description": "一个构建交互式命令行界面的库",
   "main": "dist/ga.cjs.js",
   "module": "dist/ga.es.js",
   "author": {
     "name": "夜是美"
   },
   "keywords": [
-    "ga"
+    "ga",
+    "cli",
+    "terminal"
   ],
+  "files": ["dist"],
   "bugs": {
     "url": "https://github.com/yeshimei/ntbl-ga/issues"
   },
@@ -20,33 +23,35 @@
   "license": "MIT",
   "scripts": {
     "build": "node build/rollup.config.js",
-    "docs": "jsdoc -c jsdoc.conf.json -t ./node_modules/ink-docstrap/template -R README.md  -d docs"
+    "docs": "jsdoc -r -c jsdoc.conf.json -t ./node_modules/ink-docstrap/template -R README.md  -d docs",
+    "test": "jest"
   },
   "devDependencies": {
-    "chai": "^4.2.0",
+    "@babel/core": "^7.10.2",
+    "@babel/preset-env": "^7.10.2",
+    "acorn": "^7.3.1",
+    "babel-jest": "^26.0.1",
+    "camelcase": "^5.3.1",
     "cz-conventional-changelog": "^2.1.0",
     "ink-docstrap": "^1.3.2",
-    "mocha": "^5.2.0",
+    "jest": "^26.0.1",
     "nyc": "^13.1.0",
     "rollup": "^0.63.4",
-    "rollup-plugin-terser": "^1.0.1",
-    "supertest": "^3.3.0",
-    "@babel/cli": "^7.4.3",
-    "@babel/core": "^7.4.3",
-    "@babel/preset-env": "^7.4.3",
-    "camelcase": "^5.3.1",
     "rollup-plugin-babel": "^4.3.2",
     "rollup-plugin-buble": "^0.19.6",
     "rollup-plugin-commonjs": "^9.3.4",
     "rollup-plugin-node-resolve": "^4.2.3",
     "rollup-plugin-postcss": "^2.0.3",
     "rollup-plugin-replace": "^2.2.0",
+    "rollup-plugin-terser": "^1.0.1",
     "terser": "^3.17.0",
+    "test-console": "^1.1.0",
     "validate-npm-package-name": "^3.0.0"
   },
   "dependencies": {
     "clear": "^0.1.0",
     "cli-cursor": "^3.1.0",
+    "lodash": "^4.17.15",
     "tty-events": "^0.9.3"
   },
   "config": {

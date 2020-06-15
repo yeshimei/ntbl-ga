@@ -1,5 +1,0 @@
---reporter tap
---recursive
---watch
---growl
---require babel-core/register
