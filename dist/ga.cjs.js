@@ -10,6 +10,7 @@ var cliCursor = _interopDefault(require('cli-cursor'));
 var Term = _interopDefault(require('tty-events'));
 
 /**
+ * @name Event
  * @class
  */
 class Event {
@@ -22,7 +23,8 @@ class Event {
    * - mounted
    * - beforeEach
    * - afterEach
-   * 
+   * @memberof Event
+   * @instance
    * @param {String} name - 事件名
    * @param {Function} fn - 事件函数
    * @param {*} ctx - this 指向
@@ -85,6 +87,12 @@ var config = {
   timeout: 0
 };
 
+function isAsyncFn(value) {
+  return Object.prototype.toString.call(value) === '[object AsyncFunction]';
+}
+function isCommonFn(value) {
+  return Object.prototype.toString.call(value) === '[object Function]';
+}
 function getChildren(routes, path) {
   const children = routes.filter(route => {
     route.path = route.path.filter(p => RegExp(`^\\${path}\\/?[^\\/]*$`).test(p.path));
@@ -173,6 +181,19 @@ function initRouter(app) {
   if (typeof router !== 'function') {
     throw new TypeError('Router must be a function');
   }
+  /**
+   * @name Router
+   * @class
+   */
+
+  /**
+   * 路由
+   * @name $router
+   * @memberof Ga
+   * @instance
+   * @type {Router}
+  */
+
 
   app.$router = {
     push: push.bind(app),
@@ -211,15 +232,18 @@ function routerMixin(Ga) {
   Ga.prototype.$mount = mount;
   Ga.prototype.$render = render;
 }
+/**
+  * 挂载路由
+  * @memberof Ga
+  * @instance
+  */
 
 async function mount() {
   // mount 事件
   // 此时，路由未挂载，页面未渲染
-  await this.$event.emit('mount'); // 渲染页面
+  await this.$event.emit('mount'); // 监听键盘事件（挂载路由）
 
-  await this.$router.push(this.$route.path);
-  this.$terminal.resume(); // 监听键盘事件（挂载路由）
-
+  this.$terminal.resume();
   this.$terminal.on('keypress', async (key = {}) => {
     let {
       name,
@@ -247,20 +271,28 @@ async function mount() {
     const path = `${$route.path}/${key}`.replace('//', '/');
 
     if (routes.some(route => route.path.some(p => p.path === path))) {
-      return $router.push(path);
+      return await $router.push(path);
     } // jump 转跳
 
 
     const route = routes.find(route => route.jump && route.jump.find(p => p.path === key));
 
     if (route) {
-      return $router.push(route.path[0].path);
+      return await $router.push(route.path[0].path);
     }
-  }); // mounted 事件
+  }); // 渲染页面
+
+  await this.$router.push(this.$route.path); // mounted 事件
   // 此时，路由已挂载，页面已渲染完成  
 
   await this.$event.emit('mounted');
 }
+/**
+  * 渲染页面
+  * @memberof Ga
+  * @instance
+  */
+
 
 async function render() {
   const {
@@ -269,25 +301,47 @@ async function render() {
   } = this.$route;
   const next = await this.$event.emit('beforeEach', this.$route, oldRoute);
   if (next === false) return;
-  const component = route.component;
-  const template = typeof component === 'function' ? await component(this) : component; // 设置当前模板
+  let component = route.component; // 当组件为字符串或普通函数时，封装为 async
 
-  this.$route.template = template; // 当组件未返回模板时，将由控制器交给用户
+  if (typeof component === 'string') {
+    component = async () => component;
+  } else if (typeof isCommonFn(component)) {
+    const fn = component;
 
-  if (template) {
-    // 清理屏幕
-    this.$terminal.clear(); // 打印
+    component = async ctx => fn(ctx);
+  }
 
-    this.$event.emit('render', this.$route);
+  if (isAsyncFn(component)) {
+    component(this).then(async content => {
+      const template = content; // 设置当前模板
 
-    if (!this.constructor.config.test) {
-      console.log(this.$route.template);
-    }
-  } // 后置钩子
+      this.$route.template = template; // 当组件未返回模板时，将由控制器交给用户
+
+      if (template && typeof template === 'string') {
+        // 清理屏幕
+        this.$terminal.clear(); // 打印
+
+        this.$event.emit('render', this.$route);
+
+        if (!this.constructor.config.test) {
+          console.log(this.$route.template);
+        }
+      } // 后置钩子
 
 
-  await this.$event.emit('afterEach', this.$route, oldRoute);
+      await this.$event.emit('afterEach', this.$route, oldRoute);
+    });
+  }
 }
+/**
+ * 转跳至指定路径或名字的页面
+ * 
+ * @memberof Router
+ * @instance
+ * @param {String} path - 路径或名字
+ * @param {Number} n - 当存在多个路径时，指定名字，可选择第几个路径
+ */
+
 
 async function push(path, n = 0) {
   const {
@@ -322,14 +376,35 @@ async function push(path, n = 0) {
     historyIndex = history.length - 1;
   }
 }
+/**
+ * 返回一个页面
+ * 
+ * @memberof Router
+ * @instance
+ */
+
 
 async function back() {
   await this.$router.go(-1);
 }
+/**
+ * 向前一个页面
+ * 
+ * @memberof Router
+ * @instance
+ */
+
 
 async function forward() {
   await this.$router.go(1);
 }
+/**
+ * 转跳 n 个页面，n 为正数向前，负数向后
+ * 
+ * @memberof Router
+ * @instance
+ */
+
 
 async function go(n) {
   let index = historyIndex + n;
@@ -442,6 +517,7 @@ function initMixin(Ga) {
 
 /**
  * 一个构建交互式命令行界面应用的库
+ * @name Ga
  * @class
  * @author hsy <hsy.ntbl@gmail.com>
  * @param {Object} options - 选项对象

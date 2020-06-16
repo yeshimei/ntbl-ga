@@ -78,10 +78,9 @@ async function mount () {
   // mount 事件
   // 此时，路由未挂载，页面未渲染
   await this.$event.emit('mount')
-  // 渲染页面
-  await this.$router.push(this.$route.path)
-  this.$terminal.resume()
+ 
   // 监听键盘事件（挂载路由）
+  this.$terminal.resume()
   this.$terminal.on('keypress',  async (key = {}) => {
       let { name, ctrl } = key
       const { $router, $route } = this
@@ -112,6 +111,8 @@ async function mount () {
       }
     })
 
+  // 渲染页面
+  await this.$router.push(this.$route.path)
   // mounted 事件
   // 此时，路由已挂载，页面已渲染完成  
   await this.$event.emit('mounted')
