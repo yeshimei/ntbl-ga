@@ -5,6 +5,14 @@ export function handleError (err) {
   process.exit(1)
 }
 
+export function isAsyncFn (value) {
+  return Object.prototype.toString.call(value) === '[object AsyncFunction]'
+}
+
+export function isCommonFn (value) {
+  return Object.prototype.toString.call(value) === '[object Function]'
+}
+
 export function getChildren(routes, path) {
   const children = routes.filter(route => {
     route.path = route.path.filter(p => RegExp(`^\\${path}\\/?[^\\/]*$`).test(p.path))

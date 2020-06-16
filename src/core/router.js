@@ -3,7 +3,9 @@ import  {
   getChildren,
   getChain,
   combineComboKeys,
-  formatRoutes
+  formatRoutes,
+  isCommonFn,
+  isAsyncFn
 }  from '../util'
 
 let history = []
@@ -80,11 +82,10 @@ async function mount () {
   await this.$router.push(this.$route.path)
   this.$terminal.resume()
   // 监听键盘事件（挂载路由）
-  this.$terminal.on('keypress', async (key = {}) => {
+  this.$terminal.on('keypress',  async (key = {}) => {
       let { name, ctrl } = key
       const { $router, $route } = this
       const { routes } = $router
-     
       
       // 强制退出
       if (ctrl && name === 'c') {
@@ -100,14 +101,14 @@ async function mount () {
       key = combineComboKeys(key)
       const path = `${$route.path}/${key}`.replace('//', '/')
       if (routes.some(route => route.path.some(p => p.path === path))) {
-        return $router.push(path)
+        return await $router.push(path)
       }
 
       // jump 转跳
       const route = routes.find(route => route.jump && route.jump.find(p => p.path === key))
       
       if (route) {
-        return $router.push(route.path[0].path)
+        return await $router.push(route.path[0].path)
       }
     })
 
@@ -127,28 +128,39 @@ async function render () {
   const next = await this.$event.emit('beforeEach', this.$route, oldRoute) 
   if (next === false) return
   
-  const component = route.component
-  const template = typeof component === 'function' ? await component(this) : component
-  
-  // 设置当前模板
-  this.$route.template = template
-  
+  let component = route.component
 
-  // 当组件未返回模板时，将由控制器交给用户
-  if (template) {
-    // 清理屏幕
-    this.$terminal.clear()
-    // 打印
-    this.$event.emit('render', this.$route)
-    if (!this.constructor.config.test) {
-      console.log(this.$route.template)
-    }
+  // 当组件为字符串或普通函数时，封装为 async
+  if (typeof component === 'string') {
+    component = async () => component
+  } else if (typeof isCommonFn(component)) {
+    const fn = component
+    component = async ctx => fn(ctx)
   }
-  
-  // 后置钩子
-  await this.$event.emit('afterEach', this.$route, oldRoute)
-}
 
+  if (isAsyncFn(component)) {
+    component(this)
+      .then(async content => {
+        const template = content
+          // 设置当前模板
+        this.$route.template = template
+        
+        // 当组件未返回模板时，将由控制器交给用户
+        if (template && typeof template === 'string') {
+          // 清理屏幕
+          this.$terminal.clear()
+          // 打印
+          this.$event.emit('render', this.$route)
+          if (!this.constructor.config.test) {
+            console.log(this.$route.template)
+          }
+        }
+
+        // 后置钩子
+        await this.$event.emit('afterEach', this.$route, oldRoute)
+    })
+  }
+}
 
 /**
  * 转跳至指定路径或名字的页面
@@ -166,12 +178,11 @@ async function push (path, n = 0) {
     const route = routes.find(route => route.name === path)
     path = route && route.path[n].path
   }
+
   if (!path) return
   let paths
   let route = routes.find(route => paths =  route.path.find(p => p.path === path))
   if (!route) return
-
-
 
   $route._oldRoute = $route
   $route.key = paths.key
