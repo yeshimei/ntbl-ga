@@ -13,6 +13,9 @@ Ga，一个构建交互式命令行界面的库。
 - [Terminal](#Terminal)
 - [Event](#Event)
 - [Plugin](#Plugin)
+- [进阶](#进阶)
+  - [异步与同步流程](#异步与同步流程)
+  - [动画](#动画)
 
 Ga 的核心是一个基于按键（组合键）的路由器，当运行命令行脚本时，Ga 将监听键盘事件（keypress），用户通过单击不同按键切换到对应的命令行界面。
 
@@ -161,7 +164,7 @@ Ga 路由（router）与 SPA 单页 web 应用（single page web application）�
 }
 ```
 
-在组件内部，使用 [app.$router](https://yeshimei.github.io/ntbl-ga/docs/Router.html) 上的一些路由方法精确控制页面转跳。
+在组件内部，使用 [app.$router](https://yeshimei.github.io/ntbl-ga/Router.html) 上的一些路由方法精确控制页面转跳。
 
 ```js
 // views/summary.js
@@ -184,7 +187,7 @@ module.exports = app => {
 ![](https://yeshimei.oss-cn-beijing.aliyuncs.com/20200613194702.gif)  
 [ ☞ exmaples/router/auto_return](https://github.com/yeshimei/ntbl-ga/tree/dev/exmaples/router/auto_return)
 
-每当页面渲染之前，[app.$route](https://yeshimei.github.io/ntbl-ga/docs/Ga.html) 都会更新当前页面的路由信息。这样，我们在页面底部中加入菜单导航。
+每当页面渲染之前，[app.$route](https://yeshimei.github.io/ntbl-ga/Ga.html) 都会更新当前页面的路由信息。这样，我们在页面底部中加入菜单导航。
 
 ```js
 // views/home.js
@@ -211,7 +214,7 @@ module.exports = app => {
 
 组件（component）包含用户编写的业务逻辑与界面视图逻辑。
 
-在一个组件中，一个业务可能有多个分支逻辑并多次更新当前界面的视图。为了让用户极大地保持代码的完整和可控性，视图完全交由用户处理。
+在一个组件中，一个业务可能有多个分支逻辑并多次更新当前界面的视图。为了极大地保持代码的完整和可控性，视图完全交由组件处理。
 
 比如，我们轻松地配合 [inquirer](https://github.com/SBoudrias/Inquirer.js) 实现一个账号登陆的组件。
 
@@ -225,7 +228,7 @@ module.exports = async app => {
   const { $terminal } = app
 
   // 暂停按键事件监听器
-  // 防止在输入内容时与路由转跳发生冲突
+  // 防止在输入内容时与路由发生冲突
   $terminal.pause()
 
   console.log('登陆账号：');
@@ -243,9 +246,6 @@ module.exports = async app => {
     }
   ])
 
-  // 恢复按键事件监听器
-  $terminal.resume()
-
   // 清空命令行界面
   $terminal.clear()
 
@@ -256,10 +256,13 @@ module.exports = async app => {
   try {
     await login(answer.user, answer.pass)
     log.stop()
-    return '登陆成功，欢迎您'
+    console.log('登陆成功，欢迎您');
   } catch (err) {
     log.stop()
-    return '登陆失败'
+    console.log('登陆失败');
+  } finally {
+    // 恢复按键事件监听器
+    $terminal.resume()
   }
 }
 ```
@@ -269,7 +272,7 @@ module.exports = async app => {
 
 # Terminal
 
-[app.$terminal](https://yeshimei.github.io/ntbl-ga/docs/Terminal.html) 上有一组处理命令行的方法。
+[app.$terminal](https://yeshimei.github.io/ntbl-ga/Terminal.html) 上有一组处理命令行的方法。
 
 - clear() - 清空命令行
 - pause() - 暂停按键事件监听。
@@ -328,6 +331,15 @@ module.exports = app => {
 ![](https://yeshimei.oss-cn-beijing.aliyuncs.com/20200613214219.gif)  
 [ ☞ exmaples/event](https://github.com/yeshimei/ntbl-ga/tree/dev/exmaples/event)
 
+当一个事件被注册多个函数时，包括异步函数。无论何种情况下，都将以同步队列的方式按顺序调用， 避免条件竞争导致不可预测性。
+
+```js
+// fn2 异步调用完成后
+// 才允许 fn3 调用
+$event.on('beforeEach', async fn2)
+$event.on('beforeEach', async fn3)
+```
+
 
 # Plugin
 
@@ -361,11 +373,189 @@ module.exports = app => {
 
 这里有一个复杂的插件例子，[gaPluginTwo](https://github.com/yeshimei/ntbl-ga/blob/dev/exmaples/dome/plugin/gaPluginTwo.js)，为每个页面自动生成顶部logo、面包屑导航与底部导航菜单。
 
-目前，作者有计划发布一些通用的插件。除了上面的例子外，还比如
+目前，作者有计划发布一些 [通用的插件](https://github.com/yeshimei/ntbl-ga/projects)。除了上面的例子外，还比如
 - 生成一个带动画的首页
 - 介绍各种按键的使用帮助页面
 
 当然，非常欢迎您提交一个 [pull requests](https://github.com/yeshimei/ntbl-ga/pulls) 发布您的插件，我会收录到这个项目里。
+
+# 进阶
+
+## 异步与同步流程
+
+Ga 构建在 `async/await` 异步流程上，路由实例上所有的方法都是异步函数。**组件也是异步函数**。这有能力使我们在获取接口数据、处理大量数据或一些耗时 I/O 操作时不阻塞进程，提供给用户一个良好的使用体验。
+
+```js
+// 展示用户数据的界面
+module.exports = async app => {
+  const { store, $terminal } = app
+  
+  if (store.userList) {
+    /* 展示用户数据 */
+  } else {
+    /* 获取用户数据 */
+    try {
+     /* 返回数据成功 */
+      const userList = await getUserData()
+      if (userList) {
+        // 保存数据
+        store.userList = userList
+        // 重新渲染页面
+        await app.$render()
+      } else {
+        /* 返回数据为空的处理 */  
+      }
+    } catch (err) {
+      /* 异常处理 */
+    }
+  }
+}
+```
+
+![](https://yeshimei.oss-cn-beijing.aliyuncs.com/20200616124632.gif)  
+[ ☞ exmaples/conponent/async](https://github.com/yeshimei/ntbl-ga/tree/dev/conponent/async)
+
+异步流程应用，在带给用户良好体验同时也会增加开发复杂度，但是这一切都是值得的。有些场景下，为了直观地引导用户（比如登录）。在同步流程中，在开始之前使用 `app.$terminal.pause()` 方法暂停键盘事件监听以禁止路由切换界面。在结束之后使用 `app.$terminal.resume()` 方法恢复事件监听。
+
+```js
+// views/home.js
+
+// 展示用户数据的界面
+module.exports = async app => {
+  const { store, $terminal } = app
+  
+  if (store.userList) {
+    /* 展示用户数据 */
+  } else {
+    // 暂停键盘事件
+    // 禁止路由切换界面
+    $terminal.pause()
+    
+    /* 获取数据与异常处理 */
+    
+    // 恢复事件监听
+    $terminal.resume()
+  }
+}
+```
+
+[ ☞ exmaples/conponent/sync](https://github.com/yeshimei/ntbl-ga/tree/dev/conponent/sync)
+
+## 动画 
+
+Ga 配合 [ntbl-log](https://github.com/yeshimei/ntbl-log)（或者其他类似的库）能够较为容易的实现两种动画。
+
+- loading 动画
+- 界面动画
+
+或许，你有一些疑问？命令行是如何实现动画的？
+
+得益于社区开发者们对命令行工具孜孜不倦的深掘，现成库比如 [log-update](https://github.com/sindresorhus/log-update#readme)，实现在命令行界面以稳定的帧率不断刷新同一行信息（实际上，是保留下其他行的信息，刷新整个命令行界面）。因此，我们有能力构建我们自己漂亮流畅的动画。
+
+```js
+// 安装 ntbl-log
+npm i @ntbl/log --save
+```
+
+在 [exmaples/conponent/sync](https://github.com/yeshimei/ntbl-ga/tree/dev/conponent/sync) 实例中，我们使用 [ntbl-log](https://github.com/yeshimei/ntbl-log) 实现了一个 loading 加载动画。
+
+```js
+// views/home.js
+
+// 引入 ntbl-log
+const log = require('@ntbl/log')()
+
+/* 一些代码 */
+
+log.start(data => `${data.frame} 正在拉取用户数据，请稍等`)
+```
+
+当 loading 动画在不断刷新命令行界面时，无法将其他信息渲染到命令行界面上，所以，必须让它在合适的时机停止。
+
+```js
+// views/home.js
+
+// 后续代码
+const userList = await getUserData()
+if (userList) {
+  // 当获取到数据时，停止 loading 动画
+  log.stop()
+}
+```
+
+在 [exmaples/dome](https://github.com/yeshimei/ntbl-ga/tree/dev/exmaples/dome) 我们使用 [ntbl-log](https://github.com/yeshimei/ntbl-log) 实现了一个简洁的界面动画。
+
+![](https://yeshimei.oss-cn-beijing.aliyuncs.com/20200616231014.gif)
+
+
+```js
+// uitls/log.js
+
+const log = require('@ntbl/log')()
+
+/* 自定义动画相关数据 */
+
+// 使用 ntbl-log 的加载器
+// 更好的集中管理整个项目的动画
+// 详情，请参考 github 
+log.register('home', {
+  logo: {
+    name: 'line',
+    color: 'red',
+    text: data => data.args[0](`${data.frame}`)
+  }
+})
+
+module.exports = log
+```
+
+然后，在组件中使用自定义动画。
+
+```js
+// views/home.js
+
+const log = require('../utils/log')
+
+// 使用 ntbl-log
+log.home.logo(function (frame) {
+  /* 一些模板格式处理 */
+  const content = frame + '\n\n'
+    + chalk.red.bold(`欢迎使用 ${package.name} `) + chalk.gray('v' + package.version) + '\n\n'
+    + chalk.red(package.description)
+
+    const box = boxen(content, {
+      padding: { left: 5, right: 5, top: 2, bottom: 2},
+      borderStyle: 'singleDouble',
+      borderColor: 'gray',
+      align: 'center'
+    })
+  
+  // 加上顶部和底部信息
+  const template = store.layout.header + box + store.layout.footer
+  
+  return template
+})
+```
+
+在 `beforeEach` 事件（界面切换时）里关闭界面动画。 
+
+```js
+// router.js
+
+const log = require('./utils/log')
+
+module.exports = app => {
+  const { $event } = app
+  $event.on('beforeEach', function (to, from, next) {
+    // 界面切换时，关闭 log 的动画
+    log.stop()
+    next()
+  })
+  
+  /* 路由声明 */
+}  
+```
+
 
 # Documentation
 

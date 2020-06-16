@@ -5,7 +5,7 @@ module.exports = async app => {
   const { $terminal } = app
 
   // 暂停按键事件监听器
-  // 防止在输入内容时与路由转跳发生冲突
+  // 防止在输入内容时与路由发生冲突
   $terminal.pause()
 
   console.log('登陆账号：');
@@ -23,23 +23,24 @@ module.exports = async app => {
     }
   ])
 
-  // 恢复按键事件监听器
-  $terminal.resume()
-
   // 清空命令行界面
   $terminal.clear()
 
   // loading 
   log.start(data => `${data.frame} 正在登陆，请稍等！`)
+  
 
   // 登陆验证
   try {
     await login(answer.user, answer.pass)
     log.stop()
-    return '登陆成功，欢迎您'
+    console.log('登陆成功，欢迎您');
   } catch (err) {
     log.stop()
-    return '登陆失败'
+    console.log('登陆失败');
+  } finally {
+    // 恢复按键事件监听器
+    $terminal.resume()
   }
 }
 
