@@ -6,6 +6,7 @@ module.exports = async function (app) {
   $terminal.clear()
 
   log.home.logo(function (frame) {
+    /* 一些模板格式处理 */
     const content = frame + '\n\n'
     + chalk.red.bold(`欢迎使用 ${package.name} `) + chalk.gray('v' + package.version) + '\n\n'
     + chalk.red(package.description)
@@ -16,7 +17,8 @@ module.exports = async function (app) {
       borderColor: 'gray',
       align: 'center'
     })
-  
+    
+    // 
     const template = store.layout.header + box + store.layout.footer
 
     return template
