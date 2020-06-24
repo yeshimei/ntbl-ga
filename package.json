@@ -53,10 +53,5 @@
     "cli-cursor": "^3.1.0",
     "lodash": "^4.17.15",
     "tty-events": "^0.9.3"
-  },
-  "config": {
-    "commitizen": {
-      "path": "./node_modules/cz-conventional-changelog"
-    }
   }
 }
