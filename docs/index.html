@@ -97,6 +97,13 @@
 <li><a href="#Component">Component</a></li>
 <li><a href="#Terminal">Terminal</a></li>
 <li><a href="#Event">Event</a></li>
+<li><a href="#Plugin">Plugin</a></li>
+<li><a href="#%E8%BF%9B%E9%98%B6">进阶</a>
+<ul>
+<li><a href="#%E5%BC%82%E6%AD%A5%E4%B8%8E%E5%90%8C%E6%AD%A5%E6%B5%81%E7%A8%8B">异步与同步流程</a></li>
+<li><a href="#%E5%8A%A8%E7%94%BB">动画</a></li>
+</ul>
+</li>
 </ul>
 <p>Ga 的核心是一个基于按键（组合键）的路由器，当运行命令行脚本时，Ga 将监听键盘事件（keypress），用户通过单击不同按键切换到对应的命令行界面。</p>
 <p>它很小，却能轻松配合各种命令行相关库和脑子里奇妙创意，构建出漂亮且强大的交互式命令行应用。</p>
@@ -118,7 +125,7 @@
 </ol>
 <pre class="prettyprint source lang-js"><code>// index.js
 
-const Ga = require('../../src/core')
+const Ga = require('@ntbl/ga')
 
 // or
 
@@ -157,7 +164,6 @@ module.exports = app => {
       },
       { 
         name: 'summary',
-        // 挂载路由时，默认路径
         path: '/s',
         component: summary,
       },
@@ -221,7 +227,7 @@ module.exports = app => {
   component: star
 }
 </code></pre>
-<p>在组件内部，使用 <a href="">app.$router</a> 上的一些路由方法精确控制页面转跳。</p>
+<p>在组件内部，使用 <a href="https://yeshimei.github.io/ntbl-ga/Router.html">app.$router</a> 上的一些路由方法精确控制页面转跳。</p>
 <pre class="prettyprint source lang-js"><code>// views/summary.js
 
 module.exports = app => {
@@ -240,7 +246,7 @@ module.exports = app => {
 </code></pre>
 <p><img src="https://yeshimei.oss-cn-beijing.aliyuncs.com/20200613194702.gif" alt=""><br>
 <a href="https://github.com/yeshimei/ntbl-ga/tree/dev/exmaples/router/auto_return"> ☞ exmaples/router/auto_return</a></p>
-<p>每当页面渲染之前，<a href="">app.$route</a> 都会更新当前页面的路由信息。这样，我们在页面底部中加入菜单导航。</p>
+<p>每当页面渲染之前，<a href="https://yeshimei.github.io/ntbl-ga/Ga.html">app.$route</a> 都会更新当前页面的路由信息。这样，我们在页面底部中加入菜单导航。</p>
 <pre class="prettyprint source lang-js"><code>// views/home.js
 
 module.exports = app => {
@@ -254,9 +260,14 @@ module.exports = app => {
 </code></pre>
 <p><img src="https://yeshimei.oss-cn-beijing.aliyuncs.com/20200613200451.png" alt=""><br>
 <a href="https://github.com/yeshimei/ntbl-ga/tree/dev/exmaples/router/bottom_menu"> ☞ exmaples/router/bottom_menu</a></p>
+<p>请注意，Router 在内部监听以下按键：</p>
+<ul>
+<li><code>ESC</code> 按键，返回到历史记录（history）的上一个界面。</li>
+<li><code>Ctrl+c</code> 结束程序运行</li>
+</ul>
 <h1>Component</h1>
 <p>组件（component）包含用户编写的业务逻辑与界面视图逻辑。</p>
-<p>在一个组件中，一个业务可能有多个分支逻辑并多次更新当前界面的视图。为了让用户极大地保持代码的完整和可控性，视图完全交由用户处理。</p>
+<p>在一个组件中，一个业务可能有多个分支逻辑并多次更新当前界面的视图。为了极大地保持代码的完整和可控性，视图完全交由组件处理。</p>
 <p>比如，我们轻松地配合 <a href="https://github.com/SBoudrias/Inquirer.js">inquirer</a> 实现一个账号登陆的组件。</p>
 <pre class="prettyprint source lang-js"><code>const inquirer = require('inquirer')
 const log = require('@ntbl/log')()
@@ -265,7 +276,7 @@ module.exports = async app => {
   const { $terminal } = app
 
   // 暂停按键事件监听器
-  // 防止在输入内容时与路由转跳发生冲突
+  // 防止在输入内容时与路由发生冲突
   $terminal.pause()
 
   console.log('登陆账号：');
@@ -283,9 +294,6 @@ module.exports = async app => {
     }
   ])
 
-  // 恢复按键事件监听器
-  $terminal.resume()
-
   // 清空命令行界面
   $terminal.clear()
 
@@ -296,17 +304,20 @@ module.exports = async app => {
   try {
     await login(answer.user, answer.pass)
     log.stop()
-    return '登陆成功，欢迎您'
+    console.log('登陆成功，欢迎您');
   } catch (err) {
     log.stop()
-    return '登陆失败'
+    console.log('登陆失败');
+  } finally {
+    // 恢复按键事件监听器
+    $terminal.resume()
   }
 }
 </code></pre>
 <p><img src="https://yeshimei.oss-cn-beijing.aliyuncs.com/20200613210049.gif" alt=""><br>
 <a href="https://github.com/yeshimei/ntbl-ga/tree/dev/exmaples/component/login"> ☞ exmaples/component/login</a></p>
 <h1>Terminal</h1>
-<p><a href="">app.$terminal</a> 上有一组处理命令行的方法。</p>
+<p><a href="https://yeshimei.github.io/ntbl-ga/Terminal.html">app.$terminal</a> 上有一组处理命令行的方法。</p>
 <ul>
 <li>clear() - 清空命令行</li>
 <li>pause() - 暂停按键事件监听。</li>
@@ -315,7 +326,7 @@ module.exports = async app => {
 <ul>
 <li>resume() - 恢复按键事件监听。</li>
 </ul>
-<pre class="prettyprint source"><code>app.$terminal.pause()
+<pre class="prettyprint source lang-js"><code>app.$terminal.pause()
 
 // 第三方交互库
 
@@ -331,7 +342,7 @@ app.$terminal.resume()
 <li>afterEach(to, from) - 在页面渲染之后触发</li>
 </ul>
 <p>利用事件，我们为每个页面添加底部导航。</p>
-<pre class="prettyprint source"><code>// router.js
+<pre class="prettyprint source lang-js"><code>// router.js
 
 module.exports = app => {
   const { $event } = app
@@ -357,6 +368,187 @@ module.exports = app => {
 </code></pre>
 <p><img src="https://yeshimei.oss-cn-beijing.aliyuncs.com/20200613214219.gif" alt=""><br>
 <a href="https://github.com/yeshimei/ntbl-ga/tree/dev/exmaples/event"> ☞ exmaples/event</a></p>
+<p>当一个事件被注册多个函数时，包括异步函数。无论何种情况下，都将以同步队列的方式按顺序调用， 避免条件竞争导致不可预测性。</p>
+<pre class="prettyprint source lang-js"><code>// fn2 异步调用完成后
+// 才允许 fn3 调用
+$event.on('beforeEach', async fn2)
+$event.on('beforeEach', async fn3)
+</code></pre>
+<h1>Plugin</h1>
+<p>Ga 拥有一个简便的插件（plugin） 机制，方便把一些常用的逻辑封装重复使用。</p>
+<pre class="prettyprint source lang-js"><code>// index.js
+
+// 引入插件
+const two = require('./plugin/two')
+const router = require('./router')
+
+const ga = new Ga({
+  router,
+  // 引入插件
+  plugins: [ two ]
+})
+
+ga.$mount()
+</code></pre>
+<p>每个插件其实是一个函数，app（实例）作为参数。因此，我们可以很多事情，比如，挂载一些常用工具函数，处理一些生命周期事件等等。</p>
+<pre class="prettyprint source lang-js"><code>// plugin/two.js
+
+module.exports = app => {
+ /* 插件内容 */   
+}
+</code></pre>
+<p>这里有一个复杂的插件例子，<a href="https://github.com/yeshimei/ntbl-ga/blob/dev/exmaples/dome/plugin/gaPluginTwo.js">gaPluginTwo</a>，为每个页面自动生成顶部logo、面包屑导航与底部导航菜单。</p>
+<p>目前，作者有计划发布一些 <a href="https://github.com/yeshimei/ntbl-ga/projects">通用的插件</a>。除了上面的例子外，还比如</p>
+<ul>
+<li>生成一个带动画的首页</li>
+<li>介绍各种按键的使用帮助页面</li>
+</ul>
+<p>当然，非常欢迎您提交一个 <a href="https://github.com/yeshimei/ntbl-ga/pulls">pull requests</a> 发布您的插件，我会收录到这个项目里。</p>
+<h1>进阶</h1>
+<h2>异步与同步流程</h2>
+<p>Ga 构建在 <code>async/await</code> 异步流程上，路由实例上所有的方法都是异步函数。<strong>组件也是异步函数</strong>。这有能力使我们在获取接口数据、处理大量数据或一些耗时 I/O 操作时不阻塞进程，提供给用户一个良好的使用体验。</p>
+<pre class="prettyprint source lang-js"><code>// 展示用户数据的界面
+module.exports = async app => {
+  const { store, $terminal } = app
+  
+  if (store.userList) {
+    /* 展示用户数据 */
+  } else {
+    /* 获取用户数据 */
+    try {
+     /* 返回数据成功 */
+      const userList = await getUserData()
+      if (userList) {
+        // 保存数据
+        store.userList = userList
+        // 重新渲染页面
+        await app.$render()
+      } else {
+        /* 返回数据为空的处理 */  
+      }
+    } catch (err) {
+      /* 异常处理 */
+    }
+  }
+}
+</code></pre>
+<p><img src="https://yeshimei.oss-cn-beijing.aliyuncs.com/20200616124632.gif" alt=""><br>
+<a href="https://github.com/yeshimei/ntbl-ga/tree/dev/conponent/async"> ☞ exmaples/conponent/async</a></p>
+<p>异步流程应用，在带给用户良好体验同时也会增加开发复杂度，但是这一切都是值得的。有些场景下，为了直观地引导用户（比如登录）。在同步流程中，在开始之前使用 <code>app.$terminal.pause()</code> 方法暂停键盘事件监听以禁止路由切换界面。在结束之后使用 <code>app.$terminal.resume()</code> 方法恢复事件监听。</p>
+<pre class="prettyprint source lang-js"><code>// views/home.js
+
+// 展示用户数据的界面
+module.exports = async app => {
+  const { store, $terminal } = app
+  
+  if (store.userList) {
+    /* 展示用户数据 */
+  } else {
+    // 暂停键盘事件
+    // 禁止路由切换界面
+    $terminal.pause()
+    
+    /* 获取数据与异常处理 */
+    
+    // 恢复事件监听
+    $terminal.resume()
+  }
+}
+</code></pre>
+<p><a href="https://github.com/yeshimei/ntbl-ga/tree/dev/conponent/sync"> ☞ exmaples/conponent/sync</a></p>
+<h2>动画</h2>
+<p>Ga 配合 <a href="https://github.com/yeshimei/ntbl-log">ntbl-log</a>（或者其他类似的库）能够较为容易的实现两种动画。</p>
+<ul>
+<li>loading 动画</li>
+<li>界面动画</li>
+</ul>
+<p>或许，你有一些疑问？命令行是如何实现动画的？</p>
+<p>得益于社区开发者们对命令行工具孜孜不倦的深掘，现成库比如 <a href="https://github.com/sindresorhus/log-update#readme">log-update</a>，实现在命令行界面以稳定的帧率不断刷新同一行信息（实际上，是保留下其他行的信息，刷新整个命令行界面）。因此，我们有能力构建我们自己漂亮流畅的动画。</p>
+<pre class="prettyprint source lang-js"><code>// 安装 ntbl-log
+npm i @ntbl/log --save
+</code></pre>
+<p>在 <a href="https://github.com/yeshimei/ntbl-ga/tree/dev/conponent/sync">exmaples/conponent/sync</a> 实例中，我们使用 <a href="https://github.com/yeshimei/ntbl-log">ntbl-log</a> 实现了一个 loading 加载动画。</p>
+<pre class="prettyprint source lang-js"><code>// views/home.js
+
+// 引入 ntbl-log
+const log = require('@ntbl/log')()
+
+/* 一些代码 */
+
+log.start(data => `${data.frame} 正在拉取用户数据，请稍等`)
+</code></pre>
+<p>当 loading 动画在不断刷新命令行界面时，无法将其他信息渲染到命令行界面上，所以，必须让它在合适的时机停止。</p>
+<pre class="prettyprint source lang-js"><code>// views/home.js
+
+// 后续代码
+const userList = await getUserData()
+if (userList) {
+  // 当获取到数据时，停止 loading 动画
+  log.stop()
+}
+</code></pre>
+<p>在 <a href="https://github.com/yeshimei/ntbl-ga/tree/dev/exmaples/dome">exmaples/dome</a> 我们使用 <a href="https://github.com/yeshimei/ntbl-log">ntbl-log</a> 实现了一个简洁的界面动画。</p>
+<p><img src="https://yeshimei.oss-cn-beijing.aliyuncs.com/20200616231014.gif" alt=""></p>
+<pre class="prettyprint source lang-js"><code>// uitls/log.js
+
+const log = require('@ntbl/log')()
+
+/* 自定义动画相关数据 */
+
+// 使用 ntbl-log 的加载器
+// 更好的集中管理整个项目的动画
+// 详情，请参考 github 
+log.register('home', {
+  logo: {
+    name: 'line',
+    color: 'red',
+    text: data => data.args[0](`${data.frame}`)
+  }
+})
+
+module.exports = log
+</code></pre>
+<p>然后，在组件中使用自定义动画。</p>
+<pre class="prettyprint source lang-js"><code>// views/home.js
+
+const log = require('../utils/log')
+
+// 使用 ntbl-log
+log.home.logo(function (frame) {
+  /* 一些模板格式处理 */
+  const content = frame + '\n\n'
+    + chalk.red.bold(`欢迎使用 ${package.name} `) + chalk.gray('v' + package.version) + '\n\n'
+    + chalk.red(package.description)
+
+    const box = boxen(content, {
+      padding: { left: 5, right: 5, top: 2, bottom: 2},
+      borderStyle: 'singleDouble',
+      borderColor: 'gray',
+      align: 'center'
+    })
+  
+  // 加上顶部和底部信息
+  const template = store.layout.header + box + store.layout.footer
+  
+  return template
+})
+</code></pre>
+<p>在 <code>beforeEach</code> 事件（界面切换时）里关闭界面动画。</p>
+<pre class="prettyprint source lang-js"><code>// router.js
+
+const log = require('./utils/log')
+
+module.exports = app => {
+  const { $event } = app
+  $event.on('beforeEach', function (to, from, next) {
+    // 界面切换时，关闭 log 的动画
+    log.stop()
+    next()
+  })
+  
+  /* 路由声明 */
+}  
+</code></pre>
 <h1>Documentation</h1>
 <p>一份由 jsdoc 生成的 <a href="https://yeshimei.github.io/ntbl-ga/"><strong>API Documentation</strong></a></p>
 <h1>Issues</h1>
@@ -412,7 +604,7 @@ module.exports = app => {
 <span class="jsdoc-message">
 	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.4</a>
 	
-		on 2020-06-14T00:42:38+08:00
+		on 2020-06-24T22:52:45+08:00
 	
 	using the <a href="https://github.com/docstrap/docstrap">DocStrap template</a>.
 </span>
