@@ -1,0 +1,51 @@
+{
+  "name": "@ntbl/ga-two",
+  "version": "1.0.0",
+  "description": "@ntbl/ga 插件，生成漂亮的顶底部信息（logo，导航与菜单）",
+  "main": "dist/gaTwo.cjs.js",
+  "module": "dist/gaTwo.es.js",
+  "author": {
+    "name": "夜是美"
+  },
+  "keywords": [
+    "ga",
+    "cli",
+    "terminal"
+  ],
+  "files": [
+    "dist"
+  ],
+  "bugs": {
+    "url": "https://github.com/yeshimei/ntbl-ga/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yeshimei/ntbl-ga/tree/dev/plugins/two"
+  },
+  "license": "ISC",
+  "scripts": {
+    "build": "node build/rollup.config.js",
+    "test": "jest"
+  },
+  "dependencies": {
+    "chalk": "^4.1.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.10.3",
+    "@babel/preset-env": "^7.10.3",
+    "@ntbl/ga": "^1.0.0",
+    "babel-jest": "^26.1.0",
+    "jest": "^26.1.0",
+    "nyc": "^13.1.0",
+    "rollup": "^0.63.4",
+    "rollup-plugin-babel": "^4.3.2",
+    "rollup-plugin-buble": "^0.19.6",
+    "rollup-plugin-commonjs": "^9.3.4",
+    "rollup-plugin-node-resolve": "^4.2.3",
+    "rollup-plugin-postcss": "^2.0.3",
+    "rollup-plugin-replace": "^2.2.0",
+    "rollup-plugin-terser": "^1.0.1",
+    "terser": "^3.17.0",
+    "validate-npm-package-name": "^3.0.0"
+  }
+}
