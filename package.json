@@ -1,6 +1,6 @@
 {
   "name": "@ntbl/ga",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "一个构建交互式命令行界面的库",
   "main": "dist/ga.cjs.js",
   "module": "dist/ga.es.js",
@@ -12,7 +12,9 @@
     "cli",
     "terminal"
   ],
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "bugs": {
     "url": "https://github.com/yeshimei/ntbl-ga/issues"
   },
