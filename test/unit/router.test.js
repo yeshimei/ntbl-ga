@@ -63,7 +63,7 @@ describe('Router', () => {
   describe('路由组件', () => {
     it('- 字符串', async () => {
       await app.$router.push('/a')
-      assert.equal(app.$route.template, 'string')
+      assert.equal(app.$route, 'string')
     })
   
     it('- 普通函数', async () => {
@@ -96,16 +96,6 @@ describe('Router', () => {
       assert.equal(app.$route.template, 'multiple path')
       await sendKey(app, 'f')
       assert.equal(app.$route.template, 'multiple path')
-    })
-  })
-  
-  describe('通过 jump 切换页面', () => {
-    it('一个', async () => {
-     
-    })
-
-    it('多个', async () => {
-     
     })
   })
 })

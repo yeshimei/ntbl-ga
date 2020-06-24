@@ -89,24 +89,6 @@ function isAsyncFn(value) {
 function isCommonFn(value) {
   return Object.prototype.toString.call(value) === '[object Function]';
 }
-function getChildren(routes, path) {
-  const children = routes.filter(route => {
-    route.path = route.path.filter(p => RegExp(`^\\${path}\\/?[^\\/]*$`).test(p.path));
-    return route.path.length;
-  });
-  return _.tail(children);
-}
-function getChain(routes, path) {
-  const chain = []; // 根路径的特殊处理
-
-  const keys = path === '/' ? ['/'] : path.split('/');
-  keys.forEach((key, index) => {
-    const othPath = _.take(keys, index + 1).join('/') || '/';
-    const route = routes.find(route => route.path.find(p => p.path === othPath));
-    if (route) chain.push(route);
-  });
-  return chain;
-}
 function resetPath(path) {
   return path.split('/').map(key => key.split('+').sort((a, b) => b.length - a.length).join('+')).join('/');
 }
@@ -211,8 +193,6 @@ function initRouter(app) {
    * @property {Boolean} [keys.shift=false] - 触发按键是否包含了 Shift 按键
    * @property {String} [path='/'] - 当前路由的路径
    * @property {Object} [route={}] - 当前路由对象（路由列表中匹配当前路径的对象）
-   * @property {Array} [children=[]] - 当前路由的子路由（拥有多个路径的路由对象，仅返回符合匹配的路径）
-   * @property {Array} [chain=[]] - 当前路由的路由链对象
    */
 
   app.$route = {
@@ -308,9 +288,8 @@ async function render() {
   }
 
   if (isAsyncFn(component)) {
-    component(this).then(async content => {
-      const template = content; // 设置当前模板
-
+    component(this).then(async template => {
+      // 设置当前模板
       this.$route.template = template; // 当组件未返回模板时，将由控制器交给用户
 
       if (template && typeof template === 'string') {
@@ -362,8 +341,6 @@ async function push(path, n = 0) {
   $route.keys = paths.keys;
   $route.path = path;
   $route.route = route;
-  $route.children = getChildren(_.cloneDeep(routes), path);
-  $route.chain = getChain(_.cloneDeep(routes), path);
   await this.$render(); // history 
 
   if (path !== history[historyIndex]) {
@@ -480,7 +457,7 @@ function initMixin(Ga) {
     const app = this;
     app._uid = uid++;
     app._options = options;
-    app._version = "1.0.0";
+    app._version = "1.0.1";
     /**
      * 公共存储对象，跨组件间共享数据
      * @name store
