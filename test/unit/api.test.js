@@ -58,14 +58,13 @@ describe('Api', () => {
 
   describe('Ga', () => {
     it('使用插件', async () => {
-
       Ga.config.test = true
       app = new Ga({ 
         router,
         plugins: [ addOk ]
       })
       await app.$mount()
-
+      
       assert.equal(app.$route.template, 'homepage ok')
     })
   })
@@ -90,18 +89,7 @@ describe('Api', () => {
     it('route', async () => {
       assert.equal(app.$route.route, app.$router.routes[0])
     })
-
-    it('children', async () => {
-      assert.equal(app.$route.children.length, 3)
-      await app.$router.push('/h')
-      assert.equal(app.$route.children.length, 1)
-    })
-    it('chain', async () => {
-      assert.equal(app.$route.chain.length, 1)
-      await app.$router.push('/h')
-      assert.equal(app.$route.chain.length, 2)
-    })
-  })
+ })
 
 
   describe('$router', () => {

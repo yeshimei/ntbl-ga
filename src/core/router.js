@@ -1,7 +1,5 @@
 import  _ from 'lodash'
 import  {
-  getChildren,
-  getChain,
   combineComboKeys,
   formatRoutes,
   isCommonFn,
@@ -50,8 +48,6 @@ export function initRouter (app) {
    * @property {Boolean} [keys.shift=false] - 触发按键是否包含了 Shift 按键
    * @property {String} [path='/'] - 当前路由的路径
    * @property {Object} [route={}] - 当前路由对象（路由列表中匹配当前路径的对象）
-   * @property {Array} [children=[]] - 当前路由的子路由（拥有多个路径的路由对象，仅返回符合匹配的路径）
-   * @property {Array} [chain=[]] - 当前路由的路由链对象
    */
   app.$route = {
     key: null,
@@ -141,9 +137,8 @@ async function render () {
 
   if (isAsyncFn(component)) {
     component(this)
-      .then(async content => {
-        const template = content
-          // 设置当前模板
+      .then(async template => {
+        // 设置当前模板
         this.$route.template = template
         
         // 当组件未返回模板时，将由控制器交给用户
@@ -190,8 +185,6 @@ async function push (path, n = 0) {
   $route.keys = paths.keys
   $route.path = path
   $route.route = route
-  $route.children = getChildren(_.cloneDeep(routes), path)
-  $route.chain = getChain(_.cloneDeep(routes), path)
   
   await this.$render()
   // history 

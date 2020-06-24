@@ -13,28 +13,6 @@ export function isCommonFn (value) {
   return Object.prototype.toString.call(value) === '[object Function]'
 }
 
-export function getChildren(routes, path) {
-  const children = routes.filter(route => {
-    route.path = route.path.filter(p => RegExp(`^\\${path}\\/?[^\\/]*$`).test(p.path))
-    return route.path.length
-  })
-  
-  return _.tail(children)
-}
-
-export function getChain(routes, path) {
-  const chain = []
-  // 根路径的特殊处理
-  const keys = path === '/' ? ['/'] : path.split('/')
-
-  keys.forEach((key, index) => {
-    const othPath = _.take(keys, index + 1).join('/') || '/'
-    const route = routes.find(route => route.path.find(p => p.path === othPath))
-    if (route) chain.push(route)
-  })
-  return chain
-}
-
 export function resetPath (path) {
   return path
   .split('/')
