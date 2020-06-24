@@ -1,16 +1,15 @@
 # ga-two
 
-[![GitHub](https://img.shields.io/badge/GitHub-yeshimei-green.svg)](https://github.com/yeshimei/ntbl-ga.git) [![npm](https://img.shields.io/npm/v/@ntbl/ga.svg)](https://www.npmjs.com/package/@ntbl/ga) [![MIT](https://img.shields.io/npm/l/express.svg)](https://github.com/yeshimei/ntbl-ga.git)
+[![GitHub](https://img.shields.io/badge/GitHub-yeshimei-green.svg)](https://github.com/yeshimei/ntbl-ga/tree/dev/plugins/two) [![npm](https://img.shields.io/npm/v/@ntbl/ga-two.svg)](https://www.npmjs.com/package/@ntbl/ga-two) [![MIT](https://img.shields.io/npm/l/express.svg)](https://github.com/yeshimei/ntbl-ga/tree/dev/plugins/two)
+
+
+[@ntbl/ga](https://github.com/yeshimei/ntbl-ga) 插件，生成漂亮的顶底部模板。
+
 
 - [Installation](#Installation)
 - [Usage](#Usage)
-
-@ntbl/ga 插件，生成漂亮的顶底部吗模板。
-- logo
-- 面包屑导航
-- 菜单
-
-
+- [Options](#Options)
+- [Store](#Store)
 
 
 
@@ -18,6 +17,12 @@
 
 ![](https://yeshimei.oss-cn-beijing.aliyuncs.com/20200624212200.png)
 
+
+目前，包括：
+
+- logo
+- 面包屑导航
+- 菜单
 
 # Installation
 
@@ -41,6 +46,21 @@ const app = new Ga({
 
 app.$mount()
 ```
+
+在路由（router）声明。
+
+```js
+{
+  path: '/',
+  name: 'home',
+  // 必须指定这个字段
+  // 提示菜单的显示名
+  alias: '首页',
+  component: home
+}
+```
+
+底部菜单会正确的显示 `返回（ESC）` 提示。
 
 # Options
 

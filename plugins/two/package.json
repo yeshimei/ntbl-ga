@@ -1,7 +1,7 @@
 {
   "name": "@ntbl/ga-two",
   "version": "1.0.0",
-  "description": "@ntbl/ga 插件，生成漂亮的顶底部信息（logo，导航与菜单）",
+  "description": "@ntbl/ga 插件，生成漂亮的顶底部模板。",
   "main": "dist/gaTwo.cjs.js",
   "module": "dist/gaTwo.es.js",
   "author": {
